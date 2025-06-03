@@ -1,0 +1,39 @@
+run: subroutine
+	lda #0
+        sta oambufindex
+	jsr incclk
+        
+        jsr updatevelocities
+        jsr physics
+        jsr updatepositions
+        jsr displayobjects
+        jsr clearremainingoam
+        jsr clearphysicsqueue
+        jsr collisiondetection
+        
+        
+        rts
+
+
+
+
+
+incclk:
+	lda clk
+        clc
+        adc #1
+        sta clk
+        lda clk+1
+        adc #0
+        sta clk+1
+        lda clk+2
+        adc #0
+        sta clk+2
+        lda clk+3
+        adc #0
+        sta clk+4
+        rts
+        
+
+
+

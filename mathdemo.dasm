@@ -1,11 +1,71 @@
 
 	include "nesdefs.dasm"
-
+maxfloats = 64
+maxvectors = 32
+mathscratch = 48
+maxobjects = 16
+maxcollisions = 16
+doublemuladdsram = $d0
+running = $ff
+zeroexp = $80
+vecscratch = $1c
 ;;;;; VARIABLES
 
 	seg.u ZEROPAGE
 	org $0
 
+temp0 byte
+temp1 byte
+temp2 byte
+temp3 byte
+temp4 byte
+temp5 byte
+temp6 byte
+temp7 byte
+temp8 byte
+temp9 byte
+tempa byte
+tempb byte
+tempc byte
+tempd byte
+tempe byte
+tempf byte
+floatx byte
+floaty byte
+ftemp0 byte
+ftemp1 byte
+ftemp2 byte
+ftemp3 byte
+ftemp4 byte
+ftemp5 byte
+ftemp6 byte
+ftemp7 byte
+rhi byte
+rlo byte
+rexp byte
+clk long
+gamestate byte
+newframe byte
+oambufindex byte
+playeractive long
+joy1 byte
+joy2 byte
+joy3 byte
+joy4 byte
+
+fexp ds maxfloats
+flo ds maxfloats
+fhi ds maxfloats
+
+	org $750
+buf4016_0 ds 3
+buf4016_1 ds 3
+buf4017_0 ds 3
+buf4017_1 ds 3
+	org $760
+basepalette ds $20
+	org $0780
+attributetable ds $80
 ;;;;; NES CARTRIDGE HEADER
 
 	NES_HEADER 0,2,1,NES_MIRR_HORIZ ; mapper 0, 2 PRGs, 1 CHR
@@ -29,16 +89,39 @@ Start:	subroutine
         lda #MASK_COLOR
         sta PPU_MASK	; enable rendering
 .endless
-	jmp .endless	; endless loop
+main
+	lda newframe
+        beq main
+        lda #0
+        sta newframe
+        jsr updateinput
+        
+        lda gamestate
+        cmp #running
+        bne .notrunning
+        jsr run
+.notrunning  
+
+	jmp main	; endless loop
 
 ;;;;; COMMON SUBROUTINES
 
 	include "nesppu.dasm"
+	
+	include "input.dasm"
+
+	include "run.dasm"
+
+	include "float.dasm"
 
 ;;;;; INTERRUPT HANDLERS
 
 NMIHandler: subroutine
 	SAVE_REGS
+        lda #$02
+        sta PPU_OAM_DMA
+        lda #1
+        sta newframe
 	RESTORE_REGS
 	rti
 
